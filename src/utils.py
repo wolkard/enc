@@ -14,7 +14,7 @@ def ctc_lambda_func(args):
     y_pred, labels, input_length, label_length = args
     # the 2 is critical here since the first couple outputs of the RNN
     # tend to be garbage:
-    y_pred = y_pred[:, 2:, :]
+    y_pred = y_pred[:, :, :]
     return K.ctc_batch_cost(labels, y_pred, input_length, label_length)
 
 
@@ -28,18 +28,17 @@ def preprocess(img, img_size ,path, data_aug=False):
     
     # there are damaged files in IAM dataset - just use black image instead
     if img is None:
-        print(path)
+        print("img None ! ",path)
         img = np.zeros([img_size[1], img_size[0]])
     else:
-        #随机上下左右修改为近似背景
+        #随机上下左右add 
         
         try:
             img = get_binary_graph(img)
             img = remove_and_add_side(img)
             #print("T ",path)
         except:
-            True
-            #print("F ",path)
+            print("F ",path)
             #print(img.shape)
     # increase dataset size by applying random stretches to the images
     if data_aug:
@@ -121,10 +120,10 @@ def remove_and_add_side(img_g):
     img_index = np.where(img_g<150)
     y = max(img_index[0])-min(img_index[0])
     x = max(img_index[1])-min(img_index[1])
-    left = random.randint(1,20)
-    right = random.randint(1,20)
-    top = random.randint(1,10)
-    bottom = random.randint(1,10)
+    left = 1#random.randint(1,10)
+    right = 1
+    top = random.randint(1,5)
+    bottom = random.randint(1,5)
     new_img = np.ones((y+top+bottom,x+left+right))*255
     new_img[top:-bottom,left:-right] = img_g[min(img_index[0]):max(img_index[0]),min(img_index[1]):max(img_index[1])]
     return new_img
@@ -156,3 +155,4 @@ def train_test_split_file(train_size=0.95):
 
 if __name__ == '__main__':
     train_test_split_file(train_size=0.95)
+

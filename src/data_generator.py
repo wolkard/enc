@@ -51,13 +51,16 @@ def decode_predict_ctc_old(out, chars, top_paths=1):
         results.append(text)
     return results
 def decode_predict_ctc(out,chars):
-    lables = np.argmax(out[0],axis=1)
+    result = []
+    for out_every in out:
+        lables = np.argmax(out_every,axis=1)
+        
+        txt = "".join(chars[lables])
     
-    txt = "".join(chars[lables])
-    
-    #去掉重复字符 然后 去掉代表null的字符
-    pre_txt = re.sub("-|(.)\\1+|-", "\\1", txt)
-    return pre_txt,txt
+        #去掉重复字符 然后 去掉代表null的字符
+        pre_txt = re.sub("-|(.)\\1+|-", "\\1", txt)
+        result.append(pre_txt)
+    return result
     
 
 def predit_a_image(model_p, pimg, top_paths=1):
@@ -115,41 +118,9 @@ class TextSequenceGenerator(keras.utils.Sequence):
         with open(self.fn_path) as f:
             for line in f:
                 line_split = line.strip().split(' ')
-                #print(line_split)
+                
                 assert len(line_split) >= 9
-                if line_split[0][:3]=="Img":
-                    path_f = "/"
-                else:
-                    path_f = "-"
-                file_name_split = line_split[0].split(path_f)
-
-                base_dir = os.path.split(self.fn_path)[0]
-                base_words = cf.WORDS_FOLDER
-                base_words_add = cf.WORDS_FOLDER+"_add"
-                label_dir = file_name_split[0]
-                sub_label_dir = '{}-{}'.format(
-                    file_name_split[0], file_name_split[1]
-                )
-                if line_split[0][:3]=="Img":
-                    fn = '{}.png'.format(file_name_split[-1])
-                else:
-                    fn = '{}.jpg'.format(file_name_split[-1])
-                #fn = '{}.jpg'.format(file_name_split[-1])
-                fn1 = '{}.png'.format(line_split[0])
-                if len(file_name_split)!=4:
-                    img_path = os.path.join(
-                        base_words, label_dir,
-                        file_name_split[1], fn,
-                    )#sub_label_dir,
-                    #print(img_path)
-                else:
-                    img_path = os.path.join(
-                        base_words, label_dir,
-                        sub_label_dir, fn1,
-                    )#sub_label_dir,
-                #print(img_path)
-                    #print(img_path)
-                #print(sub_label_dir)
+                img_path=cf.WORDS_FOLDER+"/".join(line_split[0].split('-'))+".jpg"
                 # GT text are columns starting at 9
                 gt_text = ' '.join(line_split[8:])[:self.max_text_len]
                 
@@ -228,3 +199,4 @@ class TextSequenceGenerator(keras.utils.Sequence):
         outputs = {'ctc': np.zeros([size])}  # (bs, 1)
 
         return inputs, outputs
+

@@ -37,10 +37,7 @@ def train():
     )
 
     no_train_set = max(train_set.ids)
-    #print(no_train_set)
     no_val_set = max(test_set.ids)
-    #logger.info("No train set: %d", no_train_set)
-    #logger.info("No val set: %d", no_val_set)
 
     model, y_func = CRNN_model()
     
@@ -50,7 +47,8 @@ def train():
 
 
     model.compile(loss={'ctc': lambda y_true, y_pred: y_pred}, optimizer=adam)
-    model.load_weights(cf.USE_MODEL_ADD)
+    if cf.USE_MODEL_ADD !="F":
+        model.load_weights(cf.USE_MODEL_ADD)
     ckp = ModelCheckpoint(
         cf.MODEL_CHECKPOINT, monitor='val_loss',
         verbose=1, save_best_only=True, save_weights_only=True
